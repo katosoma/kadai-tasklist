@@ -41,14 +41,13 @@ class TasksController extends Controller
     // getでtasks/createにアクセスされた場合の「新規登録画面表示処理」
     public function create()
     {   
-        $task = new Task;
         
-        //認証済みユーザ閲覧者がその投稿の所有者である場合はタスク作成ビューを表示
-        if (\Auth::id() === $task->user_id){
-            return view('tasks.create', [
-            'task' => $task,
-            ]);
-        }
+        $task = new Task;
+        //タスク作成ビューを表示
+        return view('tasks.create', [
+                'task' => $task,
+                ]);
+        
     }
 
     /**

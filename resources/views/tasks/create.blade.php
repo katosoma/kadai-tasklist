@@ -14,7 +14,7 @@
             
                 <div class="form-control my-4">
                     <label for="status" class="label">
-                        <span class="label-text">状態:</span>
+                        <span class="label-text">状態</span>
                     </label>
                     <input type="text" name="status" class="input input-bordered w-full">
                 </div>
