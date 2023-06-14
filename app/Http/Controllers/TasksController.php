@@ -16,14 +16,20 @@ class TasksController extends Controller
      
     //getでtasks/にアクセスされた場合の「一覧表示処理」
     public function index()
-    {
-        //タスク一覧を取得
-        $tasks =task::all();  //追加
+    {   $data=[];
+        if(\Auth::check()){ //認証済みの場合
+            //認証済みユーザーを取得
+            $user = \Auth::user();
+            //ユーザの投稿の一覧を作成日時の降順で取得
+            $tasks=$user->tasks()->orderBy('created_at','desc')->paginate(10);
+            $data = [
+                'user' => $user,
+                'tasks' => $tasks,
+            ];
+        }
         
-        // タスク一覧ビューでそれを表示
-        return view('tasks.index', [     // 追加
-            'tasks' => $tasks,        // 追加
-        ]);                                 //追加
+        //dashboardビューでそれらを表示
+        return view('dashboard', $data);
     }
 
     /**
@@ -37,10 +43,12 @@ class TasksController extends Controller
     {   
         $task = new Task;
         
-        //タスク作成ビューを表示
-        return view('tasks.create', [
+        //認証済みユーザ閲覧者がその投稿の所有者である場合はタスク作成ビューを表示
+        if (\Auth::id() === $task->user_id){
+            return view('tasks.create', [
             'task' => $task,
-        ]);
+            ]);
+        }
     }
 
     /**
@@ -59,13 +67,14 @@ class TasksController extends Controller
             'content' => 'required|max:255',
         ]);
         
-        //タスクを作成
-        $task = new Task;
-        $task->status = $request->status;    // 追加
-        $task->content = $request->content;
-        $task->save();
+        //認証済みユーザ（閲覧者）の投稿として作成（リクエストされた値を元に作成）
+        $request->user()->tasks()->create([
+            'content' => $request->content,
+            'status' => $request->status,
+            'user_id' => $request->user()->id, // 正しいユーザIDを指定する
+        ]);
         
-        // トップページへリダイレクトさせる
+       // トップページへリダイレクトさせる
         return redirect('/');
     }
 
@@ -80,12 +89,14 @@ class TasksController extends Controller
     public function show($id)
     {
         // idの値でタスクを検索して取得
-        $task = Task::findOrFail($id);
+        $task = \App\Models\Task::findOrFail($id);
 
-        // タスク詳細ビューでそれを表示
-        return view('tasks.show', [
-            'task' => $task,
-        ]);
+        //認証済みユーザ（閲覧者）がその投稿の所有者である場合タスク詳細ビューでそれを表示
+        if (\Auth::id() === $task->user_id){
+            return view('tasks.show', [
+                'task' => $task,
+            ]);
+        }
     }
 
     /**
@@ -99,12 +110,14 @@ class TasksController extends Controller
     public function edit($id)
     {
         //idの値でタスクを検索して取得
-        $task = Task::findOrFail($id);
+        $task = \App\Models\Task::findOrFail($id);
         
-        // タスク編集ビューでそれを表示
-        return view('tasks.edit', [
-            'task' => $task,
-        ]);
+        // 認証済みユーザ（閲覧者）がその投稿の所有者である場合はタスク編集ビューでそれを表示
+        if (\Auth::id() === $task->user_id){
+            return view('tasks.edit', [
+                'task' => $task,
+            ]);
+        }
     }
 
     /**
@@ -125,11 +138,14 @@ class TasksController extends Controller
         ]);
         
         //idの値でタスクを検索して取得
-        $task = Task::findOrFail($id);
-        // タスクを更新
-        $task->status = $request->status;    // 追加
-        $task->content = $request->content;
-        $task->save();
+        $task = \App\Models\Task::findOrFail($id);
+        
+        // 認証済みユーザ（閲覧者）がその投稿の所有者である場合は変更を保存
+        if (\Auth::id() === $task->user_id){
+            $task->status = $request->status;    // 追加
+            $task->content = $request->content;
+            $task->save();
+        }
         
         // トップページへリダイレクトさせる
         return redirect('/');
@@ -146,11 +162,17 @@ class TasksController extends Controller
     public function destroy($id)
     {
         //idの値でタスクを検索して取得
-        $task = Task::findOrFail($id);
-        // タスクを削除
-        $task->delete();
+        $task = \App\Models\Task::findOrFail($id);
+        
+        //認証済みユーザ（閲覧者）がその投稿の所有者である場合は投稿を削除
+        if (\Auth::id() === $task->user_id){
+            $task->delete();
+            return redirect('/')
+                ->with('success','Delete Successful');
+        }
 
         // トップページへリダイレクトさせる
-        return redirect('/');
+        return redirect('/')
+            ->with('Delete Failed');
     }
 }
