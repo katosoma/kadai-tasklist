@@ -41,13 +41,15 @@ class TasksController extends Controller
     // getでtasks/createにアクセスされた場合の「新規登録画面表示処理」
     public function create()
     {   
-        
-        $task = new Task;
-        //タスク作成ビューを表示
-        return view('tasks.create', [
-                'task' => $task,
-                ]);
-        
+        if(\Auth::check()){ //認証済みの場合
+            $task = new Task;
+            //タスク作成ビューを表示
+            return view('tasks.create', [
+                    'task' => $task,
+                    ]);
+        } else{
+            return redirect('/');    
+        }
     }
 
     /**
@@ -66,12 +68,16 @@ class TasksController extends Controller
             'content' => 'required|max:255',
         ]);
         
-        //認証済みユーザ（閲覧者）の投稿として作成（リクエストされた値を元に作成）
-        $request->user()->tasks()->create([
-            'content' => $request->content,
-            'status' => $request->status,
-            'user_id' => $request->user()->id, // 正しいユーザIDを指定する
-        ]);
+        if(\Auth::check()){ //認証済みの場合
+            //認証済みユーザ（閲覧者）の投稿として作成（リクエストされた値を元に作成）
+            $request->user()->tasks()->create([
+                'content' => $request->content,
+                'status' => $request->status,
+                'user_id' => $request->user()->id, // 正しいユーザIDを指定する
+            ]);
+        } else{
+            return redirect('/');        
+        }
         
        // トップページへリダイレクトさせる
         return redirect('/');
@@ -95,6 +101,8 @@ class TasksController extends Controller
             return view('tasks.show', [
                 'task' => $task,
             ]);
+        }else{
+            return redirect('/');
         }
     }
 
@@ -116,6 +124,8 @@ class TasksController extends Controller
             return view('tasks.edit', [
                 'task' => $task,
             ]);
+        }else{
+            return redirect('/');
         }
     }
 
@@ -144,6 +154,8 @@ class TasksController extends Controller
             $task->status = $request->status;    // 追加
             $task->content = $request->content;
             $task->save();
+        }else{
+            return redirect('/');
         }
         
         // トップページへリダイレクトさせる
@@ -168,6 +180,8 @@ class TasksController extends Controller
             $task->delete();
             return redirect('/')
                 ->with('success','Delete Successful');
+        }else{
+            return redirect('/');
         }
 
         // トップページへリダイレクトさせる
