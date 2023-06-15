@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for floral-meadow-8851 on 2023-06-12T00:59:56Z
+# fly.toml app configuration file generated for little-frog-9478 on 2023-06-15T14:08:17Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "floral-meadow-8851"
+app = "little-frog-9478"
 primary_region = "nrt"
 console_command = "php /var/www/html/artisan tinker"
 
@@ -19,14 +19,15 @@ console_command = "php /var/www/html/artisan tinker"
   LOG_STDERR_FORMATTER = "Monolog\\Formatter\\JsonFormatter"
   SESSION_DRIVER = "cookie"
   SESSION_SECURE_COOKIE = "true"
-  APP_URL="https://floral-meadow-8851.fly.dev"
-  APP_NAME="TaskList"
+  APP_URL="https://little-frog-9478.fly.dev"
+  APP_NAME="Laravel"
+  APP_DEBUG=false
   DB_CONNECTION="pgsql"
   DB_HOST="db.rledemcovvfvnqxqqjkr.supabase.co"
   DB_PORT=5432
   DB_DATABASE="postgres"
   DB_USERNAME="postgres"
-  
+
 [http_service]
   internal_port = 8080
   force_https = true
